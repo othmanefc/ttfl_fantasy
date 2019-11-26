@@ -3,23 +3,22 @@ import os
 import itertools
 import datetime
 
-path_data = os.path.join(os.getcwd(), 'data', 'season_2018.csv')
-season_data = pd.read_csv(path_data)
 
 
 class Season(object):
-    def __init__(self, season_data):
-        self.data = self.feature_cleaning(season_data)
+    def __init__(self, path_data):
+        self.data = pd.read_csv(path_data)
         self.teams = self.data.team.unique()
 
-    def feature_cleaning(self, data):
+    def feature_cleaning(self, metrics):
+        data = self.data.copy()
         data['mp'] = data['mp'].apply(lambda x: int(str(x).split(":")[0]))
         data['ttfl'] = data['pts'] + data[' trb'] + data['ast'] + data[
             'blk'] + data['fg'] + data['fg3'] + data['ft'] - data['tov'] - (
                 data['fga'] - data['fg']) - (data['fg3a'] - data['fg3']) - (
                     data['fta'] - data['ft'])
         data['date'] = data['date'].astype(str)
-        data.drop(columns='pts_team', inplace=True)
+        # data.drop(columns='pts_team', inplace=True)
         # Get ID
         teams = list(data.team.unique())
         teams_dict = {team: id for id, team in enumerate(teams)}
@@ -27,6 +26,11 @@ class Season(object):
         # Team Record
         team_record = self.get_teams_records(data)
         data = data.merge(team_record, on=['team', 'date'])
+        # Player record
+        player_record = self.get_players_weekly_rec(data, metrics)
+        print(player_record)
+        data = data.merge(player_record, on=['name', 'team', 'date'])
+        print(data)
         return data
 
     def get_teams_records(self, data):
@@ -47,6 +51,19 @@ class Season(object):
             teams_record.append(team_record)
         teams_record = pd.DataFrame(teams_record)
         return teams_record
+
+    def get_players_weekly_rec(self, data, metrics):
+        player_list = list(data.name.unique())
+        # date_list = list(data.date.unique())
+        # players_record = []
+        # for player, date in itertools.product(player_list, date_list):
+        #     player_record = {}
+        #     player_obj = Player(player, data)
+        players_df = []
+        for player in player_list:
+            player_obj = Player(player, data)
+            players_df.append(player_obj.weekly_data(metrics))
+        return pd.concat(players_df)
 
 
 class Team(object):
@@ -106,22 +123,27 @@ class Player(object):
         df = self.data.copy()
         df['week'] = pd.to_datetime(df.date, format='%Y%m%d').dt.week
         df['year'] = pd.to_datetime(df.date, format='%Y%m%d').dt.year
-        groupby_cols = ['date', 'team', 'team_id'] + add_cols
-        agg = df.groupby(groupby_cols,
-                         as_index=False).agg(metrics)
+        groupby_cols = ['name', 'date', 'team', 'team_id'] + add_cols
+        agg = df.groupby(groupby_cols, as_index=False).agg(metrics)
+        agg.columns = groupby_cols + [metric + '_lw' for metric in metrics.keys()]
         return agg
 
 
-metrics = [
-    'mp', 'fg', 'fga', 'fg_pct', 'fg3', 'fg3a', 'fg3_pct', 'ft', 'fta',
-    'ft_pct', 'orb', 'drb', ' trb', 'ast', 'stl', 'blk', 'tov', 'pf', 'pts',
-    'plus_minus', 'result', 'score', 'opp_score'
-]
-metrics_agg = {metric: 'mean' for metric in metrics}
-test = Season(season_data)
+if __name__='__main__':
+    path_data = os.path.join(os.getcwd(), 'data', 'season_2018.csv')
+    metrics = [
+        'mp', 'fg', 'fga', 'fg_pct', 'fg3', 'fg3a', 'fg3_pct', 'ft', 'fta',
+        'ft_pct', 'orb', 'drb', ' trb', 'ast', 'stl', 'blk', 'tov', 'pf', 'pts',
+        'plus_minus', 'score', 'opp_score'
+    ]
+    metrics_agg = {metric: 'mean' for metric in metrics}
+    test = Season(path_data)
+    test_data = test.feature_cleaning(metrics_agg)
 
-player_test = Player('Curry,Stephen', test.data)
+    test_data.to_csv('./data/season_2018_cleaned.csv', index=False)
+    print('data cleaned and saved')
+# player_test = Player('Curry,Stephen', test.data)
 
-team_test = Team('GSW', test.data)
+# team_test = Team('GSW', test.data)
 
-team_test.team_data_to_date('20181201', metrics_agg)
+# team_test.team_data_to_date('20181201', metrics_agg)
