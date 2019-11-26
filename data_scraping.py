@@ -96,16 +96,16 @@ class Data_scrapper(object):
         df.to_csv(full_path, index=False)
 
     def get_timeframe_data(self, sleep=0, name='default'):
-        full_time_df = []
+        full_time_list = []
         for date in tqdm_notebook(self.timeframe,
                                   total=len(self.timeframe),
                                   desc='Main Frame'):
             date_df = self.get_scores(date)
-            full_time_df.append(date_df)
+            full_time_list.append(date_df)
             time.sleep(sleep)
-        full_time_df = pd.concat(full_time_df)
+        full_time_df = pd.concat(full_time_list)
         self.write_csv(full_time_df, name=name)
-        return pd.concat(full_time_df)
+        return full_time_df
 
     def generate_time_frame(self):
         date_range = [
