@@ -1,3 +1,6 @@
 #Ignore folder
 /tmp/
 /data/
+
+#Excep!
+!/data/season*.csv
