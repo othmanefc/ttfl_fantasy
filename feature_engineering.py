@@ -54,6 +54,11 @@ class Season(object):
         data = data.merge(player_record_season,
                           on=['name', 'team', 'team_id', 'date'])
         print('Got Season Player Record')
+        # Player last game played
+        player_last_game = self.get_players_last_game(data)
+        player_last_game['date'] = fix_column_dtypes(
+            player_last_game, 'date')
+        data = data.merge(player_last_game, on=['name', 'date'])
         return data
 
     def get_teams_records(self, data):
@@ -92,7 +97,15 @@ class Season(object):
                         player_obj.season_stat_to_date(date, metrics))
 
         return pd.concat(players_df, axis=1, sort=False).T
-
+    
+    def get_players_last_game(self, data):
+        player_list = list(data.name.unique())
+        players_df = []
+        for player in tqdm(player_list, desc=f'Player Last Game'):
+            player_obj = Player(player, data)
+            player_df = player_obj.data['name', 'date', 'last_game']
+            players_df.append(player_df)
+        return pd.concat(players_df)
 
 class Team(object):
     def __init__(self, team, season_data):
@@ -163,7 +176,8 @@ class Player(object):
     def get_player_data(self, season_data):
         player_data = season_data[season_data.name == self.name].reset_index(
             drop=True)
-        player_data['date_dt'] = pd.to_datetime(player_data.date, format='%Y%m%d')
+        player_data['date_dt'] = pd.to_datetime(player_data.date,
+                                                format='%Y%m%d')
         player_data = player_data.sort_values(['date_dt'])
         player_data['last_game'] = (
             player_data['date_dt'] -
@@ -193,8 +207,10 @@ class Player(object):
             return df_empty
 
         df_metrics = df_week[list(metrics.keys())]
-        agg = ((df_metrics.mean() * 0.5 * len(df_week)) /
-               (df_metrics.std() + 0.01))
+        std = df_metrics.std() if len(df_week) > 1 else 1
+        mean = df_metrics.mean()
+        agg = ((mean * 0.5 * len(df_week)) /
+               (std))
         agg['date'] = to_date
         agg['name'] = self.name
         agg['team'] = curr_team
@@ -226,12 +242,14 @@ class Player(object):
             return df_empty
 
         df_metrics = df[list(metrics.keys())]
-        agg = ((df_metrics.mean() * 0.5 * len(df)) / df_metrics.std() + 0.01)
+        std = df_metrics.std() if len(df) > 1 else 1
+        mean = df_metrics.mean()
+        agg = ((mean * 0.5 * len(df)) / (std))
         agg['date'] = to_date
         agg['name'] = self.name
         agg['team'] = curr_team
         agg['team_id'] = curr_team_id
-        agg.index = [metric + '_sw'
+        agg.index = [metric + '_sn'
                      for metric in metrics.keys()] + groupby_cols
         return agg
 
@@ -250,66 +268,73 @@ if __name__ == '__main__':
     test_data.to_csv('./data/season_2018_cleaned.csv', index=False)
     print('data cleaned and saved')
 
-player_test = Player('Curry,Stephen', test.data)
+# player_test = Player('Curry,Stephen', test.data)
 
-team_test = Team('GSW', test.data)
+# team_test = Team('GSW', test.data)
 
-team_test.team_data_to_date('20181201', metrics_agg)
-df = test.data.copy()
-df['mp'] = df['mp'].apply(lambda x: int(str(x).split(":")[0]))
-df['ttfl'] = compute_ttfl(df)
-df['date'] = df.date.astype(str)
-teams = list(df.team.unique())
-teams_dict = {team: id for id, team in enumerate(teams)}
-df['team_id'] = df.team.map(teams_dict)
-team_record = test.get_teams_records(df)
-df_team = df.merge(team_record, on=['team', 'date'])
-player_record = test.get_players_rec(df, metrics_agg, 'week')
-player_record['date'] = fix_column_dtypes(player_record, 'date')
-df_player = df_team.merge(player_record,
-                          on=['name', 'team', 'date', 'team_id'])
-##
-player_list = list(df_team.name.unique())[:5]
-players_df = []
-for player in player_list:
-    player_obj = Player(player, df_team)
-    date_list = list(player_obj.data.date.unique())
-    print(date_list)
-    for date in date_list:
-        players_df.append(player_obj.weekly_data(date, metrics_agg))
-players_df = pd.concat(players_df, axis=1, sort=False).T
+# team_test.team_data_to_date('20181201', metrics_agg)
 
-def anti_join(tableA, tableB, on):
+# df = test.data.copy()
+# df['mp'] = df['mp'].apply(lambda x: int(str(x).split(":")[0]))
+# df['ttfl'] = compute_ttfl(df)
+# df['date'] = df.date.astype(str)
+# teams = list(df.team.unique())
+# teams_dict = {team: id for id, team in enumerate(teams)}
+# df['team_id'] = df.team.map(teams_dict)
+# team_record = test.get_teams_records(df)
+# df_team = df.merge(team_record, on=['team', 'date'])
 
-    #if joining on index, make it into a column
-    if tableB.index.name is not None:
-        dummy = tableB.reset_index()[on]
-    else:
-        dummy = tableB[on]
+# player_record = test.get_players_rec(df, metrics_agg, 'week')
+# player_record['date'] = fix_column_dtypes(player_record, 'date')
+# df_player = df_team.merge(player_record,
+#                           on=['name', 'team', 'date', 'team_id'])
+# ##
+# player_list = list(df_team.name.unique())[:5]
+# players_df = []
+# for player in player_list:
+#     player_obj = Player(player, df_team)
+#     date_list = list(player_obj.data.date.unique())
+#     print(date_list)
+#     for date in date_list:
+#         players_df.append(player_obj.weekly_data(date, metrics_agg))
+# players_df = pd.concat(players_df, axis=1, sort=False).T
+# players_df['date'] = fix_column_dtypes(players_df, 'date')
+# print(player_record.head(), player_record.shape)
+# df_player = df_team.merge(players_df,
+#                 on=['name', 'team', 'team_id', 'date'])
 
-    #create a dummy columns of 1s
-    if isinstance(dummy, pd.Series):
-        dummy = dummy.to_frame()
+# def anti_join(tableA, tableB, on):
 
-    dummy.loc[:, 'dummy_col'] = 1
+#     #if joining on index, make it into a column
+#     if tableB.index.name is not None:
+#         dummy = tableB.reset_index()[on]
+#     else:
+#         dummy = tableB[on]
 
-    #preserve the index of tableA if it has one
-    if tableA.index.name is not None:
-        idx_name = tableA.index.name
-        tableA = tableA.reset_index(drop=False)
-    else:
-        idx_name = None
+#     #create a dummy columns of 1s
+#     if isinstance(dummy, pd.Series):
+#         dummy = dummy.to_frame()
 
-    #do a left-join
-    merged = tableA.merge(dummy, on=on, how='left')
+#     dummy.loc[:, 'dummy_col'] = 1
 
-    #keep only the non-matches
-    output = merged.loc[merged.dummy_col.isna(), tableA.columns.tolist()]
+#     #preserve the index of tableA if it has one
+#     if tableA.index.name is not None:
+#         idx_name = tableA.index.name
+#         tableA = tableA.reset_index(drop=False)
+#     else:
+#         idx_name = None
 
-    #reset the index (if applicable)
-    if idx_name is not None:
-        output = output.set_index(idx_name)
+#     #do a left-join
+#     merged = tableA.merge(dummy, on=on, how='left')
 
-    return (output)
+#     #keep only the non-matches
+#     output = merged.loc[merged.dummy_col.isna(), tableA.columns.tolist()]
 
-data_cleaned = pd.read_csv('./data/season_2018_cleaned.csv')
+#     #reset the index (if applicable)
+#     if idx_name is not None:
+#         output = output.set_index(idx_name)
+
+#     return (output)
+
+
+# data_cleaned = pd.read_csv('./data/season_2018_cleaned.csv')
