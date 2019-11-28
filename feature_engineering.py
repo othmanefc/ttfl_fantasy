@@ -7,9 +7,8 @@ from tqdm import tqdm as tqdm
 
 def compute_ttfl(data):
     ttfl = data['pts'] + data[' trb'] + data['ast'] + data['blk'] + data[
-        'fg'] + data['fg3'] + data['ft'] - data['tov'] - (
-            data['fga'] - data['fg']) - (data['fg3a'] - data['fg3']) - (
-                data['fta'] - data['ft'])
+        'fg'] + data['fg3'] + data['ft'] - data['tov'] - data['fgm'] - data[
+            'fg3m'] - data['ftm']
     return ttfl
 
 
@@ -30,16 +29,33 @@ class Season(object):
         data['mp'] = data['mp'].apply(lambda x: int(str(x).split(":")[0]))
         data['ttfl'] = compute_ttfl(data)
         data['date'] = data['date'].astype(str)
+        data['fgm'] = data['fga'] - data['fg']
+        data['fg3m'] = data['fg3a'] - data['fg3']
+        data['ftm'] = data['fta'] - data['ft']
+        # Get record & opponent record
+        data['record'] = data['wins'] - data['losses']
+        data_opp = data.copy()[['team', 'record', 'opp', 'date']]
+        data_opp = data_opp.rename(columns={
+            'team': 'opp',
+            'opp': 'team',
+            'record': 'opp_record'
+        })
+        data_opp = data_opp.drop_duplicates(
+            subset=['opp', 'team', 'date', 'opp_record'])
+        data = data.merge(data_opp, on=['opp', 'team', 'date'])
+
         # data.drop(columns='pts_team', inplace=True)
         # Get ID
         teams = list(data.team.unique())
         teams_dict = {team: id for id, team in enumerate(teams)}
         data['team_id'] = data.team.map(teams_dict)
         print('Got ID')
+
         # Team Record
         team_record = self.get_teams_records(data)
         data = data.merge(team_record, on=['team', 'date'])
         print('Got Team Record')
+
         # Player record last_week
         player_record = self.get_players_rec(data, metrics, 'week')
         player_record['date'] = fix_column_dtypes(player_record, 'date')
@@ -47,6 +63,7 @@ class Season(object):
         data = data.merge(player_record,
                           on=['name', 'team', 'team_id', 'date'])
         print('Got PW Player Record')
+
         # Player record season
         player_record_season = self.get_players_rec(data, metrics, 'season')
         player_record_season['date'] = fix_column_dtypes(
@@ -54,11 +71,12 @@ class Season(object):
         data = data.merge(player_record_season,
                           on=['name', 'team', 'team_id', 'date'])
         print('Got Season Player Record')
+
         # Player last game played
         player_last_game = self.get_players_last_game(data)
-        player_last_game['date'] = fix_column_dtypes(
-            player_last_game, 'date')
+        player_last_game['date'] = fix_column_dtypes(player_last_game, 'date')
         data = data.merge(player_last_game, on=['name', 'date'])
+
         return data
 
     def get_teams_records(self, data):
@@ -97,15 +115,16 @@ class Season(object):
                         player_obj.season_stat_to_date(date, metrics))
 
         return pd.concat(players_df, axis=1, sort=False).T
-    
+
     def get_players_last_game(self, data):
         player_list = list(data.name.unique())
         players_df = []
         for player in tqdm(player_list, desc=f'Player Last Game'):
             player_obj = Player(player, data)
-            player_df = player_obj.data['name', 'date', 'last_game']
+            player_df = player_obj.data[['name', 'date', 'last_game']]
             players_df.append(player_df)
         return pd.concat(players_df)
+
 
 class Team(object):
     def __init__(self, team, season_data):
@@ -181,7 +200,7 @@ class Player(object):
         player_data = player_data.sort_values(['date_dt'])
         player_data['last_game'] = (
             player_data['date_dt'] -
-            player_data['date_dt'].shift()).dt.days.fillna(0)
+            player_data['date_dt'].shift()).dt.days.fillna(7)
         return player_data
 
     def weekly_data(self, to_date, metrics, add_cols=[]):
@@ -209,8 +228,7 @@ class Player(object):
         df_metrics = df_week[list(metrics.keys())]
         std = df_metrics.std() if len(df_week) > 1 else 1
         mean = df_metrics.mean()
-        agg = ((mean * 0.5 * len(df_week)) /
-               (std))
+        agg = ((mean * 0.5 * len(df_week)) / (std))
         agg['date'] = to_date
         agg['name'] = self.name
         agg['team'] = curr_team
@@ -237,7 +255,7 @@ class Player(object):
             df_empty['name'] = self.name
             df_empty['team'] = curr_team
             df_empty['team_id'] = curr_team_id
-
+            df_empty[[metric + '_sn' for metric in metrics.keys()]] = 0
             # print('empty', df_empty)
             return df_empty
 
@@ -257,9 +275,10 @@ class Player(object):
 if __name__ == '__main__':
     path_data = os.path.join(os.getcwd(), 'data', 'season_2018.csv')
     metrics = [
-        'mp', 'fg', 'fga', 'fg_pct', 'fg3', 'fg3a', 'fg3_pct', 'ft', 'fta',
-        'ft_pct', 'orb', 'drb', ' trb', 'ast', 'stl', 'blk', 'tov', 'pf',
-        'pts', 'plus_minus', 'score', 'opp_score'
+        'mp', 'fg', 'fga', 'fg_pct', 'fgm', 'fg3', 'fg3a', 'fg3_pct', 'fg3m',
+        'ft', 'fta', 'ft_pct', 'ftm', 'orb', 'drb', ' trb', 'ast', 'stl',
+        'blk', 'tov', 'pf', 'pts', 'plus_minus', 'score', 'record',
+        'opp_score', 'opp_record'
     ]
     metrics_agg = {metric: 'mean' for metric in metrics}
     test = Season(path_data)
@@ -335,6 +354,5 @@ if __name__ == '__main__':
 #         output = output.set_index(idx_name)
 
 #     return (output)
-
 
 # data_cleaned = pd.read_csv('./data/season_2018_cleaned.csv')
