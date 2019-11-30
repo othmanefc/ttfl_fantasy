@@ -10,7 +10,7 @@ from bayes_opt.event import Events
 from bayes_opt.util import load_logs
 from sklearn.model_selection import train_test_split
 
-from constants import TARGETS, VARS
+from constants import TARGETS, VARS, DATA_DIR, LOGS_DIR
 
 params = {
     'feature_fraction': (0.6, 0.9),
@@ -65,7 +65,7 @@ def xgb_optimization(X, y, params, random_state=1337):
     optimizer = BayesianOptimization(f=xgb_model,
                                      pbounds=params,
                                      random_state=1337)
-    logger_path = os.path.join(os.getcwd().replace('/src', ''), 'logs',
+    logger_path = os.path.join(LOGS_DIR,
                                'logs_xgb.json')
 
     if os.path.exists(logger_path):
@@ -79,7 +79,7 @@ def xgb_optimization(X, y, params, random_state=1337):
 
 
 if __name__ == '__main__':
-    path_data = os.path.join(os.getcwd(), 'data', 'season_2018_cleaned.csv')
+    path_data = os.path.join(DATA_DIR, 'season_2018_cleaned.csv')
     df = pd.read_csv(path_data)
 
     X = df[VARS]

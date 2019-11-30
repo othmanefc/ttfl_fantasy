@@ -1,3 +1,5 @@
+import os
+
 TARGETS = [
     'fg', 'fga', 'fg3', 'fg3a', 'ft', 'fta', 'orb', 'drb', 'ast', 'stl', 'blk',
     'tov', 'pts', ' trb'
@@ -15,3 +17,9 @@ VARS = [
 ]
 
 IDS = ['name', 'team', 'team_id', 'date']
+
+#Dirs
+
+MAIN_DIR = os.getcwd().replace('/src', '')
+DATA_DIR = os.path.join(MAIN_DIR, 'data')
+LOGS_DIR = os.path.join(MAIN_DIR, 'logs')

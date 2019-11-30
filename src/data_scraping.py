@@ -6,6 +6,7 @@ import os
 import datetime
 from tqdm import tqdm as tqdm_notebook
 import time
+from constants import DATA_DIR
 
 
 class Data_scrapper(object):
@@ -70,13 +71,19 @@ class Data_scrapper(object):
                             res = 0
                         player_dict.update({metric: res})
                     if result == 'winner':
-                        player_dict.update({'result': 1, 'score': score,
-                                    'opp': summary['loser'][0],
-                                    'opp_score': summary['loser'][1]})
+                        player_dict.update({
+                            'result': 1,
+                            'score': score,
+                            'opp': summary['loser'][0],
+                            'opp_score': summary['loser'][1]
+                        })
                     if result == 'loser':
-                        player_dict.update({'result': 0, 'score': score, 
-                                    'opp': summary['winner'][0], 
-                                    'opp_score': summary['winner'][1]})
+                        player_dict.update({
+                            'result': 0,
+                            'score': score,
+                            'opp': summary['winner'][0],
+                            'opp_score': summary['winner'][1]
+                        })
                     if int(str(player_dict['mp']).split(':')[0]) >= 10:
                         team.append(player_dict)
                 team = pd.DataFrame(team)
@@ -88,8 +95,7 @@ class Data_scrapper(object):
         return df_games
 
     def write_csv(self, df, name):
-        current_dir = os.getcwd()
-        path_data = os.path.join(current_dir.replace('/src', ''), 'data')
+        path_data = os.path.join(DATA_DIR)
         if not os.path.exists(path_data):
             os.mkdir(path_data)
         full_path = os.path.join(path_data, f'{name}.csv')
@@ -113,3 +119,21 @@ class Data_scrapper(object):
             for x in range(0, (self.end - self.start).days)
         ]
         return date_range
+
+    def get_next_games(self, date):
+        month = datetime.datetime.strptime(date, '%Y%m%d').strftime('%B')
+        url_games = f'https://www.basketball-reference.com/leagues/NBA_2020_games-{month}.html'
+        soup = BeautifulSoup(urlopen(url_games), 'lxml')
+        month_games = soup.find_all('tr')
+        match_ups = []
+        for month_game in month_games:
+            try:
+                check_date = month_game.find('th')['csk'].startswith(date)
+            except:
+                continue
+            
+            if check_date:
+                visitor = month_game.find('td', {"data-stat": "visitor_team_name"}).find('a')['href'][7:10]
+                home = month_game.find('td', {"data-stat": "home_team_name"}).find('a')['href'][7:10]
+                match_ups.append({"home": home, "visitor": visitor})
+        return match_ups

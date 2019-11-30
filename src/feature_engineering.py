@@ -3,6 +3,7 @@ import os
 import itertools
 import datetime
 from tqdm import tqdm as tqdm
+from constants import DATA_DIR
 
 
 def compute_ttfl(data, missed=True):
@@ -279,7 +280,7 @@ class Player(object):
 
 
 if __name__ == '__main__':
-    path_data = os.path.join(os.getcwd().replace('/src', ''), 'data',
+    path_data = os.path.join(DATA_DIR,
                              'season_2018.csv')
     metrics = [
         'mp', 'fg', 'fga', 'fg_pct', 'fgm', 'fg3', 'fg3a', 'fg3_pct', 'fg3m',
