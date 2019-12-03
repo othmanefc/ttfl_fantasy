@@ -8,7 +8,10 @@ from bayes_opt import BayesianOptimization
 from bayes_opt.observer import JSONLogger
 from bayes_opt.event import Events
 from bayes_opt.util import load_logs
-from sklearn.model_selection import train_test_split
+
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.decomposition import PCA
 
 from constants import TARGETS, VARS, DATA_DIR, LOGS_DIR
 
@@ -52,7 +55,7 @@ def xgb_optimization(X, y, params, random_state=1337):
             "boosting": "gbdt",
             "verbosity": 1,
             "early_stopping_round": 200,
-            "metric": 'mae'
+            "metric": 'rmse'
         })
 
         clf = xgb.cv(params,
@@ -65,8 +68,7 @@ def xgb_optimization(X, y, params, random_state=1337):
     optimizer = BayesianOptimization(f=xgb_model,
                                      pbounds=params,
                                      random_state=1337)
-    logger_path = os.path.join(LOGS_DIR,
-                               'logs_xgb.json')
+    logger_path = os.path.join(LOGS_DIR, 'logs_xgb.json')
 
     if os.path.exists(logger_path):
         load_logs(optimizer, logs=logger_path)
@@ -76,6 +78,14 @@ def xgb_optimization(X, y, params, random_state=1337):
     optimizer.maximize(init_points=5, n_iter=25, acq='ucb')
 
     return optimizer.max['params']
+
+
+def scaling(X, n):
+    m_m = MinMaxScaler()
+    X = m_m.fit_transform(X)
+    pca = PCA(n_components=n)
+    X = pca.fit_transform(X)
+    return X
 
 
 if __name__ == '__main__':
