@@ -16,7 +16,51 @@ VARS = [
     'stl_lw', 'stl_sn', 'tot_game', 'tov_lw', 'tov_sn'
 ]
 
+METRICS = [
+    'mp', 'fg', 'fga', 'fg_pct', 'fgm', 'fg3', 'fg3a', 'fg3_pct', 'fg3m', 'ft',
+    'fta', 'ft_pct', 'ftm', 'orb', 'drb', ' trb', 'ast', 'stl', 'blk', 'tov',
+    'pf', 'pts', 'plus_minus', 'score', 'record', 'opp_score', 'opp_record'
+]
+
 IDS = ['name', 'team', 'team_id', 'date']
+
+SEASON_DATES = {
+    '2018': ['20181016', '20190410'],
+    '2019': ['20191022', '20200415']
+}
+
+TEAM_ID = {
+    'GSW': 0,
+    'BOS': 1,
+    'DEN': 2,
+    'PHI': 3,
+    'MEM': 4,
+    'IND': 5,
+    'SAS': 6,
+    'NOP': 7,
+    'POR': 8,
+    'ATL': 9,
+    'MIL': 10,
+    'CHO': 11,
+    'DET': 12,
+    'BRK': 13,
+    'HOU': 14,
+    'LAC': 15,
+    'NYK': 16,
+    'ORL': 17,
+    'MIA': 18,
+    'PHO': 19,
+    'DAL': 20,
+    'UTA': 21,
+    'SAC': 22,
+    'MIN': 23,
+    'TOR': 24,
+    'CLE': 25,
+    'LAL': 26,
+    'WAS': 27,
+    'CHI': 28,
+    'OKC': 29
+}
 
 #Dirs
 

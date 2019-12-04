@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/othmane/Documents/personal_project/ttfl_fantasy/mlruns/0/fc9462bb5f2d488ba9ec4426120f0503/artifacts
+end_time: 1575478059682
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+name: ''
+run_id: fc9462bb5f2d488ba9ec4426120f0503
+run_uuid: fc9462bb5f2d488ba9ec4426120f0503
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1575478059166
+status: 3
+tags: []
+user_id: othmane

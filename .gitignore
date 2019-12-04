@@ -1,6 +1,9 @@
 #Ignore folder
 /tmp/
 /data/
-
+/.ipynb_checkpoints/
+/__pycache__/
+#Ignore Files ext
+*.swp
 #Excep!
 !/data/season*.csv
