@@ -106,12 +106,13 @@ class Season(object):
         return max_date
 
     def get_teams_records(self, data):
-
+        already = False
         if 'wins' in data.columns:
             max_date = self.get_max_date('wins', data)
-            data_c = data[data.date > max_date] 
+            data_c = data[data.date > max_date]
+            already = True
         else:
-            max_date = data.date.astype(int).min() - 1 
+            max_date = data.date.astype(int).min() - 1
             data_c = data.copy()
 
         teams_list = list(data_c.team.unique())
@@ -142,6 +143,9 @@ class Season(object):
                     teams_record.append(team_record)
 
         teams_record = pd.DataFrame(teams_record)
+        if already:
+            teams_record = pd.concat[teams_record, data_c[
+                ['team', 'wins', 'losses', 'tot_game', 'date', 'date_dt']]]
         return teams_record
 
     def get_players_rec(self, data, metrics, granularity):

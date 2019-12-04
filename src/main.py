@@ -59,12 +59,19 @@ def feature_engineer(df):
     df_engineered = season.feature_cleaning(metrics_agg)
     return df_engineered
 
+
 def run_model(df):
     X, y = df[VARS], df['ttfl']
     nn_mod = nn_model(X, y)
     model = nn_mod.run_saved_model(X, y)
-    return model 
+    return model
 
-def date_games(date):
-    match_ups = Data_scrapper.get_next_games(date)
 
+def players_availables(date):
+    players = Data_scrapper.get_next_games_player(date)
+    return players
+
+
+def init_stats(players):
+    
+    return False
