@@ -5,7 +5,7 @@ from time import time
 import random
 
 from keras import backend as K
-from keras.models import Sequential, load_models
+from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout
 from keras.wrappers.scikit_learn import KerasRegressor
 from keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping
@@ -166,7 +166,7 @@ class nn_model(object):
             shuffle=True,
             verbose=1,
         )
-        model.model = load_models(
+        model.model = load_model(
             os.path.join(LOGS_DIR, 'Models/NNModel', 'saved_model.h5'))
         if np.any([X, y]) == None:
             X, y = self.X, self.y
