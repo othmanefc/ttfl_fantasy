@@ -155,7 +155,7 @@ class nn_model(object):
             os.path.join(LOGS_DIR, 'Models/NNModel', 'saved_model.h5'))
         #pipeline.save(os.path.join(LOGS_DIR, 'Models/NNModel',
         #                              'saved_model.h5'))
-        #return model
+        return model
 
     def run_saved_model(self, X=None, y=None):
         model = KerasRegressor(

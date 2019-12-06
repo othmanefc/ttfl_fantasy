@@ -14,16 +14,16 @@ __VERSION__ = "1.0.0"
 __GIT__ = "https://github.com/domus123/gpopy"
 
 
-def header():
-    """Print tunning header """
-    print("GPOPY")
-    print(f"VERSION: {__VERSION__}")
-    print("HELP US IMPROVE")
-    print(f"BUGS AND SUGESTION AT : {__GIT__}")
-    print("Added support to MLFlow tracking\n")
+# def header():
+#     """Print tunning header """
+#     print("GPOPY")
+#     print(f"VERSION: {__VERSION__}")
+#     print("HELP US IMPROVE")
+#     print(f"BUGS AND SUGESTION AT : {__GIT__}")
+#     print("Added support to MLFlow tracking\n")
 
 
-header()
+# header()
 
 
 def activate_param(param, attribute):

@@ -122,10 +122,10 @@ class Data_scrapper(object):
         return date_range
 
     @staticmethod
-    def get_next_games(date):
+    def get_next_games(date, season_year):
         month = datetime.datetime.strptime(date,
                                            '%Y%m%d').strftime('%B').lower()
-        url_games = f'https://www.basketball-reference.com/leagues/NBA_2020_games-{month}.html'
+        url_games = f'https://www.basketball-reference.com/leagues/NBA_{season_year}_games-{month}.html'
         print(url_games)
         soup = BeautifulSoup(urlopen(url_games), 'lxml')
         month_games = soup.find_all('tr')
@@ -147,8 +147,8 @@ class Data_scrapper(object):
         return match_ups
 
     @staticmethod
-    def get_all_players(team, date):
-        url = f'https://www.basketball-reference.com/teams/{team}/2020.html'
+    def get_all_players(team, date, season_year):
+        url = f'https://www.basketball-reference.com/teams/{team}/{season_year}.html'
         print(url)
         soup = BeautifulSoup(urlopen(url), 'lxml')
         table_players = soup.find('tbody')
@@ -159,8 +159,8 @@ class Data_scrapper(object):
         return players
 
     @staticmethod
-    def get_injured_players(team, date):
-        url = f'https://www.basketball-reference.com/teams/{team}/2020.html'
+    def get_injured_players(team, date, season_year):
+        url = f'https://www.basketball-reference.com/teams/{team}/{season_year}.html'
         soup = BeautifulSoup(urlopen(url), 'lxml')
         div_inj = soup.find('div', id="all_injury")
         try:
@@ -178,14 +178,16 @@ class Data_scrapper(object):
             return []
 
     @staticmethod
-    def get_next_games_player(date):
-        match_ups = Data_scrapper.get_next_games(date)
+    def get_next_games_player(date, season_year):
+        match_ups = Data_scrapper.get_next_games(date, season_year)
         all_players_list = []
         for match_up in match_ups:
             for i, team in enumerate(match_up.values()):
-                all_players = Data_scrapper.get_all_players(team, date)
+                all_players = Data_scrapper.get_all_players(
+                    team, date, season_year)
 
-                injured_players = Data_scrapper.get_injured_players(team, date)
+                injured_players = Data_scrapper.get_injured_players(
+                    team, date, season_year)
                 injured_players_names = [
                     player['name'] for player in injured_players
                 ] if len(injured_players) > 0 else []
@@ -200,5 +202,5 @@ class Data_scrapper(object):
                     player['opp'] = list(match_up.values())[ind]
 
                 all_players_list.extend(available_players)
-            
+
         return pd.DataFrame(all_players_list)
