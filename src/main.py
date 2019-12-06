@@ -6,7 +6,7 @@ import datetime
 
 from constants import DATA_DIR, SEASON_DATES, METRICS, VARS
 from data_scraping import Data_scrapper
-import feature_engineering
+from feature_engineering import Season
 from nn_model import nn_model
 
 
@@ -27,7 +27,7 @@ def check_date_available(df, date):
     if 'date_dt' not in df.columns:
         df['date_dt'] = pd.to_datetime(df.date, format='%Y%m%d')
     max_date_av = df.date_dt.max()
-    return date - max_date_av
+    return date - max_date_av == datetime.timedelta(days=1)
 
 
 def scrape_df(start, end, date, season):
@@ -36,19 +36,20 @@ def scrape_df(start, end, date, season):
     return df
 
 
-def append_df(season, df_scraped, write=True):
-    initial_df = pd.read_csv(path)
+def append_df(initial_df, players_df, write=True):
     initial_df = initial_df.sort_values('date', ascending=True)
-    df_scraped = df_scraped.sort_values('date', ascending=True)
-    appended = pd.concat([initial_df, df_scraped])
-    if write:
-        appended.to_csv(path, index=False)
+    players_df = players_df.sort_values('date', ascending=True)
+    assert (players_df.date.max() -
+            initial_df.date.max() == datetime.timedelta(days=1))
+    appended = pd.concat([initial_df, players_df])
     return appended
+
 
 def load_dataset(season, data):
     data = pd.read_csv(os.path.join(DATA_DIR, f'season_{season}.csv'))
     data = data[data.date < date]
     return data
+
 
 def feature_engineer(df):
     season = Season(data=df, read=False)
@@ -66,6 +67,7 @@ def run_model(df):
 
 def players_availables(date):
     players = Data_scrapper.get_next_games_player(date)
+    players['date_dt'] = pd.to_datetime(players.date, format='%Y%m%d')
     return players
 
 
@@ -90,8 +92,7 @@ if check_season == 'Season available':
     clean_dataset()
 
 today = st.sidebar.markdown(f"today's date: {datetime.datetime.now().date()}")
-date = st.sidebar.date_input('prediction date desired', 
-                                season_end_dt)
+date = st.sidebar.date_input('prediction date desired', season_end_dt)
 if date > season_end_dt.date():
     st.error('Cannot predict outside the season, there is no game available')
 
@@ -101,31 +102,16 @@ previous_seasons = st.sidebar.checkbox('Predict on used model')
 
 predict_btn = st.sidebar.button('Predict!')
 
+
 def predict(date, season):
     players = players_availables(date)
-    if check_season=='Season available':
+    if check_season == 'Season available':
         df = load_dataset(season, date)
-        append_df()
+        append_df(df, players)
         feature_engineer()
 
-    if check_season=='Season not available':
+    if check_season == 'Season not available':
         scrape_df()
         players_availables()
         append_df()
         feature_engineer()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

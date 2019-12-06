@@ -393,8 +393,7 @@ if __name__ == '__main__':
     test = Season(path_data)
     test_data = test.feature_cleaning(metrics_agg)
 
-    test_data.to_csv(os.getcwd().replace('/src', ''),
-                     'data',
+    test_data.to_csv(
                      'season_2018_cleaned.csv',
                      index=False)
     print('data cleaned and saved')
