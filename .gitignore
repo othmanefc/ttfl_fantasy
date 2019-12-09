@@ -3,6 +3,7 @@
 /data/
 /.ipynb_checkpoints/
 /__pycache__/
+/ttfl/
 #Ignore Files ext
 *.swp
 #Excep!
