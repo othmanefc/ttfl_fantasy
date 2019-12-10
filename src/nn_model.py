@@ -13,7 +13,8 @@ from gpopy import FlowTunning
 
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.model_selection import KFold, cross_val_score, RandomizedSearchCV, train_test_split
+from sklearn.model_selection import (KFold, cross_val_score,
+                                     RandomizedSearchCV, train_test_split)
 from sklearn.decomposition import PCA
 
 from constants import VARS, LOGS_DIR, DATA_DIR
@@ -53,7 +54,12 @@ PARAMS = {
 }
 
 
-class nn_model(object):
+def root_mean_squared_error(y_true, y_pred):
+    # Custom loss function for keras
+    return K.sqrt(K.mean(K.square(y_pred - y_true)))
+
+
+class Nn_model(object):
     def __init__(self, X, y):
         self.X = X
         self.y = y
@@ -74,10 +80,8 @@ class nn_model(object):
                       momentum=momentum,
                       decay=decay,
                       nesterov=True)
-            #tensorboard_dir = os.path.join(LOGS_DIR, "/Models/NNModel/{}".format(time))
-            #tensorboard = TensorBoard(log_dir=tensorboard_dir)
 
-            model.compile(loss=self.root_mean_squared_error, optimizer=sgd)
+            model.compile(loss=root_mean_squared_error, optimizer=sgd)
             return model
 
         return i_m
@@ -109,15 +113,9 @@ class nn_model(object):
                   momentum=momentum,
                   decay=decay,
                   nesterov=True)
-        #tensorboard_dir = os.path.join(LOGS_DIR, "/Models/NNModel/{}".format(time))
-        #tensorboard = TensorBoard(log_dir=tensorboard_dir)
 
-        model.compile(loss=self.root_mean_squared_error, optimizer=sgd)
+        model.compile(loss=root_mean_squared_error, optimizer=sgd)
         return model
-
-    def root_mean_squared_error(self, y_true, y_pred):
-        # Custom loss function for keras
-        return K.sqrt(K.mean(K.square(y_pred - y_true)))
 
     def run_models(self):
         estimators = []
@@ -138,7 +136,7 @@ class nn_model(object):
         X_transform = pipeline.fit_transform(self.X)
         # kfold = KFold(n_splits=3)
         # results = cross_val_score(pipeline, X, y, cv=kfold)
-        #estimators = []
+        # estimators = []
         # print("Wider: %.2f (%.2f) RMSE" % (results.mean(), results.std()))
         filepath = os.path.join(LOGS_DIR, 'Models/NNModel/weights',
                                 'weights.{epoch:02d}-{val_loss:.2f}.hdf5')
@@ -151,7 +149,7 @@ class nn_model(object):
         model.fit(X_transform, self.y, callbacks=callbacks_list)
         model.model.save(
             os.path.join(LOGS_DIR, 'Models/NNModel', 'saved_model.h5'))
-        #pipeline.save(os.path.join(LOGS_DIR, 'Models/NNModel',
+        # pipeline.save(os.path.join(LOGS_DIR, 'Models/NNModel',
         #                              'saved_model.h5'))
         return model
 
@@ -168,7 +166,7 @@ class nn_model(object):
                                               'saved_model.h5'),
                                  custom_objects={
                                      'root_mean_squared_error':
-                                     self.root_mean_squared_error
+                                     root_mean_squared_error
                                  })
         if np.any([X, y]) is None:
             X, y = self.X, self.y
@@ -215,11 +213,11 @@ class nn_model(object):
                   verbose=1)
         score = model.evaluate(X_test, y_test)
         print(
-            "#######################- RESULTS -####################################"
+            "#######################- RESULTS -###############################"
         )
         print('Test loss:', score)
         print(
-            "######################################################################"
+            "#################################################################"
         )
         return (-score, model)
 
@@ -257,7 +255,7 @@ if __name__ == '__main__':
     df = pd.read_csv(df_path)
     X, y = df[VARS], df['pts']
     # hist = run_models(X, y)
-    model = nn_model(X, y)
+    model = Nn_model(X, y)
     model.mlflow_run(params=PARAMS,
                      population_size=5,
                      maximum_generation=20,

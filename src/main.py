@@ -7,7 +7,7 @@ import datetime
 from constants import DATA_DIR, SEASON_DATES, METRICS, VARS
 from data_scraping import Data_scrapper
 from feature_engineering import Season
-from nn_model import nn_model
+from nn_model import Nn_model
 
 from joblib import Memory
 memory_path = './tmp'
@@ -93,7 +93,7 @@ def feature_engineer(df):
 
 
 def run_model(X, y, saved_model=True):
-    nn_mod = nn_model(X, y)
+    nn_mod = Nn_model(X, y)
     if saved_model:
         model = nn_mod.run_saved_model()
     else:
