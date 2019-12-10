@@ -1,24 +1,22 @@
 import os
 import pandas as pd
 import numpy as np
-from time import time
 import random
 
 from keras import backend as K
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout
 from keras.wrappers.scikit_learn import KerasRegressor
-from keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping
+from keras.callbacks import ModelCheckpoint
 from keras.optimizers import SGD
 from gpopy import FlowTunning
-import mlflow.keras
 
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.model_selection import KFold, cross_val_score, RandomizedSearchCV, train_test_split
 from sklearn.decomposition import PCA
 
-from constants import VARS, IDS, LOGS_DIR, DATA_DIR
+from constants import VARS, LOGS_DIR, DATA_DIR
 
 PARAMS = {
     'epochs': [20, 50],
@@ -166,9 +164,13 @@ class nn_model(object):
             shuffle=True,
             verbose=1,
         )
-        model.model = load_model(
-            os.path.join(LOGS_DIR, 'Models/NNModel', 'saved_model.h5'))
-        if np.any([X, y]) == None:
+        model.model = load_model(os.path.join(LOGS_DIR, 'Models/NNModel',
+                                              'saved_model.h5'),
+                                 custom_objects={
+                                     'root_mean_squared_error':
+                                     self.root_mean_squared_error
+                                 })
+        if np.any([X, y]) is None:
             X, y = self.X, self.y
 
         estimators = []
@@ -176,13 +178,12 @@ class nn_model(object):
         estimators.append(('pca', PCA(n_components=40)))
         pipeline = Pipeline(estimators, verbose=True)
         X_transform = pipeline.fit_transform(X)
-        
+
         model.fit(X_transform, y)
         model.model.save(
             os.path.join(LOGS_DIR, 'Models/NNModel', 'saved_model.h5'))
-        
+
         return model
-        
 
     def run_models_mlflow(self, data):
         estimators = []
@@ -193,7 +194,7 @@ class nn_model(object):
         pipeline = Pipeline(estimators, verbose=True)
         # kfold = KFold(n_splits=3)
         # results = cross_val_score(pipeline, X, y, cv=kfold)
-        #estimators = []
+        # estimators = []
         # print("Wider: %.2f (%.2f) RMSE" % (results.mean(), results.std()))
         X_transform = pipeline.fit_transform(self.X)
         X_train, X_test, y_train, y_test = train_test_split(X_transform, y)
@@ -226,11 +227,13 @@ class nn_model(object):
                    params,
                    maximum_generation=20,
                    population_size=10,
-                   auto_track=True):
+                   auto_track=True,
+                   experiment_name="Default"):
         tunning = FlowTunning(params=params,
                               population_size=population_size,
                               maximum_generation=maximum_generation,
-                              auto_track=auto_track)
+                              auto_track=auto_track,
+                              experiment_name=experiment_name)
         tunning.set_score(self.run_models_mlflow)
         tunning.run()
 
@@ -244,15 +247,18 @@ class nn_model(object):
     # callbacks_list = [checkpoint]
     # pipeline.fit(X, y, mlp__callbacks=callbacks_list)
 
-    #pipeline.save(os.path.join(LOGS_DIR, 'Models/NNModel',
+    # pipeline.save(os.path.join(LOGS_DIR, 'Models/NNModel',
     #                              'saved_model.h5'))
-    #return model
+    # return model
 
 
 if __name__ == '__main__':
     df_path = os.path.join(DATA_DIR, 'season_2018_cleaned.csv')
     df = pd.read_csv(df_path)
-    X, y = df[VARS], df['ttfl']
+    X, y = df[VARS], df['pts']
     # hist = run_models(X, y)
     model = nn_model(X, y)
-    model.mlflow_run(params=PARAMS, population_size=5, maximum_generation=20)
+    model.mlflow_run(params=PARAMS,
+                     population_size=5,
+                     maximum_generation=20,
+                     experiment_name="pts")

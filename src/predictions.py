@@ -59,10 +59,8 @@ def main(df_path, dates, params_path, suffix):
 
 
 if __name__ == '__main__':
-    df_path = os.path.join(DATA_DIR,
-                           'season_2018_cleaned.csv')
-    params_path = os.path.join(LOGS_DIR,
-                               'logs_xgb.json')
+    df_path = os.path.join(DATA_DIR, 'season_2018_cleaned.csv')
+    params_path = os.path.join(LOGS_DIR, 'logs_xgb.json')
     dates = [20190109, 20190120]
     suffix = 'xgb_00'
     main(df_path, dates, params_path, suffix)
