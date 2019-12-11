@@ -98,7 +98,7 @@ METRICS = [
     "opp_record",
 ]
 
-IDS = ["name", "team", "team_id", "date"]
+IDS = ["name", "team", "team_id", "date", "opp"]
 
 SEASON_DATES = {
     "2018": ["20181016", "20190410"],
@@ -143,3 +143,4 @@ TEAM_ID = {
 MAIN_DIR = os.getcwd().replace("/src", "")
 DATA_DIR = os.path.join(MAIN_DIR, "data")
 LOGS_DIR = os.path.join(MAIN_DIR, "logs")
+CACHE_DIR = os.path.join(DATA_DIR, "cache")

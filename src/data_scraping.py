@@ -6,10 +6,10 @@ import os
 import datetime
 from tqdm import tqdm as tqdm_notebook
 import time
-from constants import DATA_DIR
+from constants import DATA_DIR, CACHE_DIR
 from joblib import Memory
 
-memory_path = "./tmp"
+memory_path = CACHE_DIR
 memory1 = Memory(memory_path, verbose=0)
 
 
@@ -132,8 +132,8 @@ class Data_scrapper(object):
         for date in tqdm_notebook(self.timeframe,
                                   total=len(self.timeframe),
                                   desc="Main Frame"):
-            get_scores = memory1.cache(get_scores)
-            date_df = get_scores(date, self.metrics)
+            get_scores_cached = memory1.cache(get_scores)
+            date_df = get_scores_cached(date, self.metrics)
             full_time_list.append(date_df)
             time.sleep(sleep)
         full_time_df = pd.concat(full_time_list, sort=True)

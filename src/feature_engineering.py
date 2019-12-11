@@ -2,10 +2,10 @@ import pandas as pd
 import os
 import datetime
 from tqdm import tqdm as tqdm
-from constants import DATA_DIR, METRICS, TEAM_ID
+from constants import DATA_DIR, METRICS, TEAM_ID, CACHE_DIR
 from joblib import Memory
 
-memory_path = os.path.join(DATA_DIR, "cache")
+memory_path = CACHE_DIR
 memory1 = Memory(memory_path, verbose=0)
 memory2 = Memory(memory_path, verbose=0)
 memory3 = Memory(memory_path, verbose=0)

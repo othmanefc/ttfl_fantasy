@@ -4,7 +4,7 @@ import numpy as np
 import os
 import datetime
 
-from constants import DATA_DIR, SEASON_DATES, METRICS, VARS
+from constants import DATA_DIR, SEASON_DATES, METRICS, VARS, IDS
 from data_scraping import Data_scrapper
 from feature_engineering import Season
 from nn_model import Nn_model
@@ -152,13 +152,16 @@ def split_df(df, date_wanted):
     df_test = df[df.date_dt == date_wanted]
     X_train, X_test = df_train[VARS], df_test[VARS]
     y_train = df_train['ttfl']
-    return X_train, X_test, y_train
+    assert (len(X_train) == len(y_train))
+    return X_train, X_test, y_train, df_train[IDS], df_test[IDS]
 
 
-def predict(model, X):
-    y = model.predict(X)
-    df = pd.concat([X, y], axis=1)
-    df.columns = list(X.columns) + ['ttfl']
+def predict(model, X, df_test):
+    nn_model = Nn_model(X, None)
+    X_transform = nn_model.pipeline_x()
+    y = model.predict(X_transform).reshape(len(X_transform))
+    df = pd.concat([df_test, X, pd.Series(y)], axis=1)
+    df.columns = list(df_test.columns) + list(X.columns) + ['ttfl']
     return df
 
 
@@ -169,12 +172,13 @@ def main(season_selected, date_selected, previous_seasons, season_year):
                                           season_year)
     st.success('Dataset built')
     # Split
-    X_train, X_test, y_train = split_df(df_to_predict, date_selected)
+    X_train, X_test, y_train, df_train, df_test = split_df(
+        df_to_predict, date_selected)
     # Train or retrain
     with st.spinner('Training model'):
         model = run_model(X_train, y_train, previous_seasons)
     # predict
-    predicted_df = predict(model, X_test)
+    predicted_df = predict(model, X_test, df_test)
     predicted_df = predicted_df.sort_values('ttfl', ascending=False)
     st.write(predicted_df)
     st.balloons()
