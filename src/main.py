@@ -160,7 +160,12 @@ def predict(model, X, df_test):
     nn_model = Nn_model(X, None)
     X_transform = nn_model.pipeline_x()
     y = model.predict(X_transform).reshape(len(X_transform))
-    df = pd.concat([df_test, X, pd.Series(y)], axis=1)
+    df = pd.concat([
+        df_test.reset_index(drop=True),
+        X.reset_index(drop=True),
+        pd.Series(y).reset_index(drop=True)
+    ],
+                   axis=1)
     df.columns = list(df_test.columns) + list(X.columns) + ['ttfl']
     return df
 
@@ -174,6 +179,8 @@ def main(season_selected, date_selected, previous_seasons, season_year):
     # Split
     X_train, X_test, y_train, df_train, df_test = split_df(
         df_to_predict, date_selected)
+    X_train.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
+    X_test.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
     # Train or retrain
     with st.spinner('Training model'):
         model = run_model(X_train, y_train, previous_seasons)
@@ -197,11 +204,11 @@ season_year = season_end[0:4]
 
 check_season = check_season_available(season_selected)
 st.sidebar.markdown(f'**{check_season}**')
-st.sidebar.markdown(f'Season goes from **{season_start_dt.date()}** to \n'
-                    f'**{season_end_dt.date()}**')
+st.sidebar.markdown(f'Season goes from **{season_start_dt.date()}**')
+st.sidebar.markdown(f'to **{season_end_dt.date()}**')
 
 today = st.sidebar.markdown(
-    f"Today's date: **{datetime.datetime.now().date()}**")
+    f"Today is: **{datetime.datetime.now().date()}**")
 today_dt = datetime.datetime.now()
 date = st.sidebar.date_input('prediction date:', season_end_dt)
 date = datetime.datetime.combine(date, datetime.time())
@@ -211,7 +218,7 @@ if (date < season_start_dt) or (date > season_end_dt):
 previous_seasons = st.sidebar.checkbox('Predict on used model')
 
 predict_btn = st.sidebar.button('🚀 Predict!')
-stop_btn = st.sidebar.button('Stop')
+stop_btn = st.sidebar.button('💀 Stop')
 
 if predict_btn:
     main(season_selected, date, previous_seasons, season_year)

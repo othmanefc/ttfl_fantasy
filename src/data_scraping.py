@@ -83,6 +83,8 @@ def get_scores(date, metrics):
             team["score"] = score
             df_games.append(pd.DataFrame(team))
     df_games = pd.concat(df_games)
+    if ' trb' in df_games.columns:
+        df_games.rename({' trb': 'trb'}, inplace=True)
     Data_scrapper.write_csv(df=df_games, name=date)
     return df_games
 
