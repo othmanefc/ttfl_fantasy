@@ -18,10 +18,10 @@ Initialize the environment
 virtualenv -p python3.7 env
 source env/bin/activate
 pip install -r requirements.txt
-````
+```
 
 Activate the environment and run
-``bash
+```bash
 source env/bin/activate # If not already in the virtual env
 streamlit run app.py
 ````
