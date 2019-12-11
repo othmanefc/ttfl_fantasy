@@ -9,3 +9,21 @@ This repository is aimed at scrapping at predicting best picks for the TrashTalk
 
 *feature_enginnering.py*: creating the different features and transforming the dataset returned by the scraper
 
+# How to Run Locally:
+
+## From Virtual Env:
+
+Initialize the environment
+```bash
+virtualenv -p python3.7 env
+source env/bin/activate
+pip install -r requirements.txt
+````
+
+Activate the environment and run
+``bash
+source env/bin/activate # If not already in the virtual env
+streamlit run app.py
+````
+
+
