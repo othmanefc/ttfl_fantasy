@@ -7,7 +7,7 @@ import pprint
 import mlflow
 from types import FunctionType
 from operator import itemgetter
-from constants import LOGS_DIR
+from src.constants import LOGS_DIR
 from tqdm import tqdm
 
 __VERSION__ = "1.0.0"

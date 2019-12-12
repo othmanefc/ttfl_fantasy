@@ -9,7 +9,7 @@ from keras.layers import Dense, Dropout
 from keras.wrappers.scikit_learn import KerasRegressor
 from keras.callbacks import ModelCheckpoint
 from keras.optimizers import SGD
-from gpopy import FlowTunning
+from src.gpopy import FlowTunning
 
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.pipeline import Pipeline, FeatureUnion
@@ -17,7 +17,7 @@ from sklearn.model_selection import (KFold, cross_val_score,
                                      RandomizedSearchCV, train_test_split)
 from sklearn.decomposition import PCA
 
-from constants import VARS, LOGS_DIR, DATA_DIR
+from src.constants import VARS, LOGS_DIR, DATA_DIR
 
 PARAMS = {
     'epochs': [20, 50],

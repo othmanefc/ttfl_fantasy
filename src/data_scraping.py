@@ -6,7 +6,7 @@ import os
 import datetime
 from tqdm import tqdm as tqdm_notebook
 import time
-from constants import DATA_DIR, CACHE_DIR
+from src.constants import DATA_DIR, CACHE_DIR
 from joblib import Memory
 
 memory_path = CACHE_DIR

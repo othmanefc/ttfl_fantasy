@@ -28,5 +28,5 @@ streamlit run app.py
 ## From Docker:
 
 ```bash
-doker build -t ttfl_fantasy:latest .
+docker build -t ttfl_fantasy:latest .
 ```

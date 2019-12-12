@@ -4,7 +4,7 @@ import xgboost as xgb
 from constants import VARS, IDS
 from sklearn.metrics import mean_absolute_error
 from utils import train_test_split
-from constants import DATA_DIR, LOGS_DIR
+from src.constants import DATA_DIR, LOGS_DIR
 
 
 def best_params(path):

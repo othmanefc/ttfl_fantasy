@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import datetime
 from tqdm import tqdm as tqdm
-from constants import DATA_DIR, METRICS, TEAM_ID, CACHE_DIR
+from src.constants import DATA_DIR, METRICS, TEAM_ID, CACHE_DIR
 from joblib import Memory
 
 memory_path = CACHE_DIR
