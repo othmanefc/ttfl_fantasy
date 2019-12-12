@@ -1,7 +1,6 @@
-#Generic Algorithm Hyper Parameter Optimization Python (GPOPY)
-#writted by Lucas Guerra Borges
-#lu.guerra7508@gmail.com
-#-----------------------------------------------------------------#
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import random as rd
 import pprint
 import mlflow
@@ -9,21 +8,6 @@ from types import FunctionType
 from operator import itemgetter
 from src.constants import LOGS_DIR
 from tqdm import tqdm
-
-__VERSION__ = "1.0.0"
-__GIT__ = "https://github.com/domus123/gpopy"
-
-
-# def header():
-#     """Print tunning header """
-#     print("GPOPY")
-#     print(f"VERSION: {__VERSION__}")
-#     print("HELP US IMPROVE")
-#     print(f"BUGS AND SUGESTION AT : {__GIT__}")
-#     print("Added support to MLFlow tracking\n")
-
-
-# header()
 
 
 def activate_param(param, attribute):

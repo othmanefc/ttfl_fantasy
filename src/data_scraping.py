@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from bs4 import BeautifulSoup, Comment
 import pandas as pd
 import re
