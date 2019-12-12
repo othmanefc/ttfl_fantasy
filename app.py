@@ -4,13 +4,14 @@ import numpy as np
 import os
 import datetime
 
-from constants import DATA_DIR, SEASON_DATES, METRICS, VARS, IDS
-from data_scraping import Data_scrapper
-from feature_engineering import Season
-from nn_model import Nn_model
+from src.constants import (DATA_DIR, CACHE_DIR, SEASON_DATES, METRICS, VARS,
+                           IDS)
+from src.data_scraping import Data_scrapper
+from src.feature_engineering import Season
+from src.nn_model import Nn_model
 
 from joblib import Memory
-memory_path = './tmp'
+memory_path = CACHE_DIR
 memory1 = Memory(memory_path, verbose=0)
 memory2 = Memory(memory_path, verbose=0)
 memory3 = Memory(memory_path, verbose=0)
@@ -194,6 +195,7 @@ def main(season_selected, date_selected, previous_seasons, season_year):
 
 ###
 # Sidebar
+st.sidebar.header('TrashTalk Fantasy')
 available_seasons = list(SEASON_DATES.keys())
 season_selected = st.sidebar.selectbox('Season', available_seasons, index=1)
 season_selected_tf = SEASON_DATES[season_selected]
@@ -207,8 +209,7 @@ st.sidebar.markdown(f'**{check_season}**')
 st.sidebar.markdown(f'Season goes from **{season_start_dt.date()}**')
 st.sidebar.markdown(f'to **{season_end_dt.date()}**')
 
-today = st.sidebar.markdown(
-    f"Today is: **{datetime.datetime.now().date()}**")
+today = st.sidebar.markdown(f"Today is: **{datetime.datetime.now().date()}**")
 today_dt = datetime.datetime.now()
 date = st.sidebar.date_input('prediction date:', season_end_dt)
 date = datetime.datetime.combine(date, datetime.time())

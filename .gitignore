@@ -4,6 +4,7 @@ tmp/
 .ipynb_checkpoints/
 __pycache__/
 /ttfl/
+.DS_Store
 #Ignore Files ext
 *.swp
 #Excep!

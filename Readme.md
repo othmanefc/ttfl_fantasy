@@ -24,6 +24,9 @@ Activate the environment and run
 ```bash
 source env/bin/activate # If not already in the virtual env
 streamlit run app.py
-````
+```
+## From Docker:
 
-
+```bash
+doker build -t ttfl_fantasy:latest .
+```

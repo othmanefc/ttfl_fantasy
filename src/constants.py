@@ -144,3 +144,7 @@ MAIN_DIR = os.getcwd().replace("/src", "")
 DATA_DIR = os.path.join(MAIN_DIR, "data")
 LOGS_DIR = os.path.join(MAIN_DIR, "logs")
 CACHE_DIR = os.path.join(DATA_DIR, "cache")
+
+os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(LOGS_DIR, exist_ok=True)
+os.makedirs(CACHE_DIR, "cache")
