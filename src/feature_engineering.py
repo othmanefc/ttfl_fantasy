@@ -125,7 +125,7 @@ def player_weekly_data_cache(data,
     df_metrics = df_week[list(metrics.keys())]
     std = df_metrics.std() if len(df_week) > 1 else 1
     mean = df_metrics.mean()
-    agg = (mean * 0.5 * len(df_week)) / (std)
+    agg = (mean) / (std)
     agg["date"] = to_date
     agg["date_dt"] = to_date_dt
     agg["name"] = name
@@ -164,7 +164,7 @@ def player_season_stat_to_date_cache(data,
     df_metrics = df[list(metrics.keys())]
     std = df_metrics.std() if len(df) > 1 else 1
     mean = df_metrics.mean()
-    agg = (mean * 0.5 * len(df)) / (std)
+    agg = (mean) / (std)
     agg["date"] = to_date
     agg["date_dt"] = to_date_dt
     agg["name"] = name
