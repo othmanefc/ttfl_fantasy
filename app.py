@@ -60,7 +60,7 @@ def get_end_date(today, date):
                                           '%Y%m%d')
 
 
-# @memory1.cache
+@memory1.cache
 def scrape_df(start, end):
     print('Started Scraping...')
     scrapper = Data_scrapper(start, end)
@@ -71,17 +71,17 @@ def scrape_df(start, end):
 
 
 def append_df(initial_df, players_df, write=True):
-    initial_df = initial_df.sort_values('date', ascending=True)
-    players_df = players_df.sort_values('date', ascending=True)
+    initial_df = initial_df.sort_values('date_dt', ascending=True)
+    players_df = players_df.sort_values('date_dt', ascending=True)
     print(players_df.date_dt.max(), initial_df.date_dt.max())
     assert (players_df.date_dt.max() -
             initial_df.date_dt.max() == datetime.timedelta(days=1))
-    appended = pd.concat([initial_df, players_df])
+    appended = pd.concat([initial_df, players_df], sort=True)
     return appended
 
 
 @memory2.cache
-def load_dataset(season, data):
+def load_dataset(season):
     data = pd.read_csv(os.path.join(DATA_DIR, f'season_{season}.csv'))
     if 'date_dt' not in data.columns:
         data.date_dt = pd.to_datetime(data.date, format='%Y%m%d')
@@ -89,6 +89,7 @@ def load_dataset(season, data):
     return data
 
 
+@memory3.cache
 def feature_engineer(df):
     season = Season(data=df, read=False)
     metrics_agg = {metric: 'mean' for metric in METRICS}
@@ -118,10 +119,10 @@ def init_stats(df):
     return False
 
 
-@memory3.cache
+# @memory3.cache
 def get_df_prediction(date, season, season_year):
     if check_season == 'Season available':
-        df = load_dataset(season, date)
+        df = load_dataset(season)
         print('check date:', check_date_available(df, date))
         if check_date_available(df, date) == 1:
             players = players_available(date, season_year)
@@ -214,7 +215,7 @@ st.sidebar.markdown(f'to **{season_end_dt.date()}**')
 
 today = st.sidebar.markdown(f"Today is: **{datetime.datetime.now().date()}**")
 today_dt = datetime.datetime.now()
-date = st.sidebar.date_input('prediction date:', season_end_dt)
+date = st.sidebar.date_input('prediction date:', today_dt)
 date = datetime.datetime.combine(date, datetime.time())
 if (date < season_start_dt) or (date > season_end_dt):
     st.error('Cannot predict outside the season, there is no game available')

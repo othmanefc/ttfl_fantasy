@@ -57,23 +57,27 @@ def xgb_optimization(X, y, params, random_state=1337):
         params["learning_rate"] = learning_rate
         params["n_estimators"] = int(round(n_estimators))
 
-        params.update(
-            {
-                "objective": "reg:squarederror",
-                "max_bin": 255,
-                "bagging_freq": 1,
-                "min_child_samples": 20,
-                "boosting": "gbdt",
-                "verbosity": 1,
-                "early_stopping_round": 200,
-                "metric": "rmse",
-            }
-        )
+        params.update({
+            "objective": "reg:squarederror",
+            "max_bin": 255,
+            "bagging_freq": 1,
+            "min_child_samples": 20,
+            "boosting": "gbdt",
+            "verbosity": 1,
+            "early_stopping_round": 200,
+            "metric": "rmse",
+        })
 
-        clf = xgb.cv(params, training_data, nfold=5, seed=random_state, verbose_eval=1)
+        clf = xgb.cv(params,
+                     training_data,
+                     nfold=5,
+                     seed=random_state,
+                     verbose_eval=1)
         return (-1 * np.array(clf["test-rmse-mean"])).max()
 
-    optimizer = BayesianOptimization(f=xgb_model, pbounds=params, random_state=1337)
+    optimizer = BayesianOptimization(f=xgb_model,
+                                     pbounds=params,
+                                     random_state=1337)
     logger_path = os.path.join(LOGS_DIR, "logs_xgb.json")
 
     if os.path.exists(logger_path):

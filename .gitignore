@@ -5,6 +5,7 @@ tmp/
 __pycache__/
 /ttfl/
 .DS_Store
+.mypy_cache
 #Ignore Files ext
 *.swp
 #Excep!

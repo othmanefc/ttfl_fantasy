@@ -10,14 +10,14 @@ import os
 import datetime
 from tqdm import tqdm as tqdm_notebook
 import time
-from src.constants import DATA_DIR, CACHE_DIR
-from joblib import Memory
-
-memory_path = CACHE_DIR
-memory1 = Memory(memory_path, verbose=0)
+from src.constants import DATA_DIR
 
 
 def get_scores(date: str, metrics: List[str]) -> pd.DataFrame:
+    path_check = os.path.join(DATA_DIR, "dates", f"{date}.csv")
+    if os.path.exists(path_check):
+        df_games = pd.read_csv(path_check)
+        return df_games
 
     url_parent: str = "https://www.basketball-reference.com"
     url: str = (f"https://www.basketball-reference.com/boxscores/?month="
@@ -50,11 +50,10 @@ def get_scores(date: str, metrics: List[str]) -> pd.DataFrame:
         soup_game: BeautifulSoup = BeautifulSoup(urlopen(url_game), "lxml")
         box_score: Optional[element.Tag] = game.find("a",
                                                      text="Box Score")["href"]
-        date: Optional[element.Tag] = re.findall(r"\d\d\d\d\d\d\d\d",
-                                                 box_score)[0]
+        date = re.findall(r"\d\d\d\d\d\d\d\d", box_score)[0]
 
         for result, (side, score) in summary.items():
-            game_result: Option[element.Tag] = soup_game.find(
+            game_result: Optional[element.Tag] = soup_game.find(
                 "table",
                 class_="sortable stats_table",
                 id=f"box-{side}-game-basic")
@@ -100,7 +99,8 @@ def get_scores(date: str, metrics: List[str]) -> pd.DataFrame:
     df_games_df: pd.DataFrame = pd.concat(df_games)
     if ' trb' in df_games_df.columns:
         df_games_df.rename({' trb': 'trb'}, inplace=True)
-    Data_scrapper.write_csv(df=df_games_df, name=date)
+
+    Data_scrapper.write_csv(df=df_games_df, name=date, extra_path="dates")
     return df_games_df
 
 
@@ -134,8 +134,12 @@ class Data_scrapper(object):
         self.timeframe: pd.DataFrame = self.generate_time_frame()
 
     @staticmethod
-    def write_csv(df: pd.DataFrame, name: str) -> None:
-        path_data: str = os.path.join(DATA_DIR)
+    def write_csv(df: pd.DataFrame, name: str, extra_path: str = None) -> None:
+        if extra_path is not None:
+            path_data: str = os.path.join(DATA_DIR, extra_path)
+        else:
+            path_data = os.path.join(DATA_DIR)
+
         if not os.path.exists(path_data):
             os.mkdir(path_data)
         full_path: str = os.path.join(path_data, f"{name}.csv")
@@ -150,8 +154,9 @@ class Data_scrapper(object):
         for date in tqdm_notebook(self.timeframe,
                                   total=len(self.timeframe),
                                   desc="Main Frame"):
-            get_scores_cached: Callable = memory1.cache(get_scores)
-            date_df: pd.DataFrame = get_scores_cached(date, self.metrics)
+            # get_scores_cached: Callable = memory1.cache(get_scores)
+            # date_df: pd.DataFrame = get_scores_cached(date, self.metrics)
+            date_df: pd.DataFrame = get_scores(date, self.metrics)
             full_time_list.append(date_df)
             time.sleep(sleep)
         full_time_df: pd.DataFrame = pd.concat(full_time_list, sort=True)
@@ -167,8 +172,9 @@ class Data_scrapper(object):
         return date_range
 
     @staticmethod
-    def get_next_games(date: str, season_year: Union[str, int]
-                       ) -> List[Dict[str, Optional[str]]]:
+    def get_next_games(
+            date: str,
+            season_year: Union[str, int]) -> List[Dict[str, Optional[str]]]:
         month: str = datetime.datetime.strptime(
             date, "%Y%m%d").strftime("%B").lower()
         url_games: str = (f"https://www.basketball-reference.com/leagues/"
@@ -197,8 +203,9 @@ class Data_scrapper(object):
         return match_ups
 
     @staticmethod
-    def get_all_players(team: str, date: str, season_year: Union[str, int]
-                        ) -> List[Dict[str, Optional[str]]]:
+    def get_all_players(
+            team: Optional[str], date: str,
+            season_year: Union[str, int]) -> List[Dict[str, Optional[str]]]:
         url: str = (f"https://www.basketball-reference.com/"
                     f"teams/{team}/{season_year}.html")
         print(url)
@@ -212,7 +219,7 @@ class Data_scrapper(object):
         return players
 
     @staticmethod
-    def get_injured_players(team: str, date: str,
+    def get_injured_players(team: Optional[str], date: str,
                             season_year: Union[str, int]) -> List:
         url: str = (f"https://www.basketball-reference.com/"
                     f"teams/{team}/{season_year}.html")
@@ -222,7 +229,7 @@ class Data_scrapper(object):
             comments: Sequence[Optional[element.Tag]] = div_inj.find_all(
                 string=lambda text: isinstance(text, Comment))
             comms: Optional[str] = re.sub("\n", "", comments[0]).strip()
-            soup: BeautifulSoup = BeautifulSoup(comms, "lxml")
+            soup = BeautifulSoup(comms, "lxml")
             body: Optional[element.Tag] = soup.find("tbody")
             players: List[Dict[str, Optional[str]]] = []
             for player in body.find_all("tr"):
@@ -236,14 +243,14 @@ class Data_scrapper(object):
     @staticmethod
     def get_next_games_player(date: str,
                               season_year: Union[str, int]) -> pd.DataFrame:
-        match_ups: List[
-            Dict[str, Optional[str]]] = Data_scrapper.get_next_games(
-                date, season_year)
+        match_ups: List[Dict[str,
+                             Optional[str]]] = Data_scrapper.get_next_games(
+                                 date, season_year)
         all_players_list: List = []
         for match_up in match_ups:
             for i, team in enumerate(match_up.values()):
-                all_players: List[
-                    Dict[str, Optional[str]]] = Data_scrapper.get_all_players(
+                all_players: List[Dict[
+                    str, Optional[str]]] = Data_scrapper.get_all_players(
                         team, date, season_year)
 
                 injured_players: List = Data_scrapper.get_injured_players(
@@ -259,8 +266,7 @@ class Data_scrapper(object):
 
                 for player in available_players:
                     ind: int = 1 if i == 0 else 0
-                    player["opp"]: Union[int, str] = list(
-                        match_up.values())[ind]
+                    player["opp"] = list(match_up.values())[ind]
 
                 all_players_list.extend(available_players)
 

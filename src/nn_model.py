@@ -9,15 +9,13 @@ import random
 from keras import backend as K
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout
-from keras.wrappers.scikit_learn import KerasRegressor
 from keras.callbacks import ModelCheckpoint
 from keras.optimizers import SGD
 from src.gpopy import FlowTunning
 
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.model_selection import (KFold, cross_val_score,
-                                     RandomizedSearchCV, train_test_split)
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 
 from src.constants import VARS, LOGS_DIR, DATA_DIR
