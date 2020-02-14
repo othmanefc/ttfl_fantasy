@@ -21,8 +21,8 @@ TARGETS = [
 ]
 
 VARS = [
-    "trb_lw",
-    "trb_sn",
+    " trb_lw",
+    " trb_sn",
     "ast_lw",
     "ast_sn",
     "blk_lw",
@@ -87,7 +87,7 @@ METRICS = [
     "ftm",
     "orb",
     "drb",
-    "trb",
+    " trb",
     "ast",
     "stl",
     "blk",

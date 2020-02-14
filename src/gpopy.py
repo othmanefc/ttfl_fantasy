@@ -4,9 +4,7 @@
 import random as rd
 import pprint
 import mlflow
-from types import FunctionType
 from operator import itemgetter
-from src.constants import LOGS_DIR
 from tqdm import tqdm
 
 
@@ -15,8 +13,8 @@ def activate_param(param, attribute):
         Inputs:
             param: Is one of the keys defined in your param dict
             attribute: Is the value associate with this param
-        return: 
-            upadate: The parameter evaluated according with your definition 
+        return:
+            upadate: The parameter evaluated according with your definition
     """
     if (isinstance(attribute, list) or isinstance(attribute, tuple)):
         length = len(attribute)
@@ -86,7 +84,7 @@ class Tunning():
             for i in range(self.population_size):
                 pop.append(self.create_individue())
             self.population = pop
-            return self.population  #opt
+            return self.population  # opt
 
         else:
             self.new_generation()
@@ -142,16 +140,16 @@ class Tunning():
 
     def score(self, save_model=False):
         """ Calculate the score returned from score_function and save score with/without model"""
-        if self.score_function == None:
+        if self.score_function is None:
             assert False, "No score function setted, you can set it using set_score(func) or passing score= func during class instantiation"
 
         for i in self.population:
             print(f"Scoring on ... {i}")
             if save_model:
                 (score, model) = self.score_function(i)
-                #TODO Change the > for any custom predicate
+                # TODO Change the > for any custom predicate
                 if (score > self.top_score):
-                    #save only the BEST model in memory, since keep then all may be memory expensive with big models
+                    # save only the BEST model in memory, since keep then all may be memory expensive with big models
                     print(
                         "###################################################################"
                     )
@@ -177,9 +175,8 @@ class Tunning():
 class FlowTunning(Tunning):
     """ 
         This class was designed for using mlflow as a visualization tool and for saving your model
-        
         Since you're using MLFlow, you should set in your environment the details such as artifacts, experiments and enviroment.
-        You can set it before calling tunning. 
+        You can set it before calling tunning.
 
         What we wanted with this class is a way to keep track of informations and use it to visualize.
         You can track only the hyper parameters evolutions over the generations, or you can use a full MLFlow approach with your custom score and run functions.
@@ -192,7 +189,7 @@ class FlowTunning(Tunning):
                  experiment_name="default",
                  auto_track=True):
         """ 
-            Track_best: Boolean 
+            Track_best: Boolean
             The default value assumes that you don't customize your model with MLFlow and is using only GPOPY parameters as comparision,
             and for saving your models (In memory).
             More details on advanced logs and how mlflow can save your models MLFlow documentation at: https://www.mlflow.org/docs/latest/index.html
@@ -205,10 +202,10 @@ class FlowTunning(Tunning):
     def mlflow_tracking(self, params, score, generation="None"):
         """
         Get the params of the network and log it to mlflow with a few parameters>
-        Inputs: 
-            params: A dict with all the values that was used in the algorithm 
-            score: The result from running the model with 
-        Return: None 
+        Inputs:
+            params: A dict with all the values that was used in the algorithm
+            score: The result from running the model with
+        Return: None
         """
         print(f"Params: {params}")
         #score, model = top_score
@@ -232,10 +229,10 @@ class FlowTunning(Tunning):
 
     def easy_score(self, generation):
         """
-        Let GPOPY handle saves and scores 
-        #TODO: Change this method, seems duplicated 
+        Let GPOPY handle saves and scores
+        #TODO: Change this method, seems duplicated
         """
-        if self.score_function == None:
+        if self.score_function is None:
             assert False, "No score function setted, you can set it using set_score(func) or passing score= func during class instantiation"
         for elem in tqdm(self.population, desc='Population'):
             score, model = self.score_function(elem)
@@ -260,18 +257,18 @@ class FlowTunning(Tunning):
         print(f"Better parent {self.first_parent}")
         print("DONE")
         self.mlflow_tracking(self.first_parent, generation_top_score,
-                             generation + 1)  ## Simple version using mlflow
+                             generation + 1)  # Simple version using mlflow
 
     def detailed_score(self, generation):
         """
         A more detailed run with mlflow.
         While use this function, is recomended that you use the mlflow tracking function for the model you're using.
-        e.g You can use mlflow tracking on Tensorflow, torch, scikit ... 
-        
+        e.g You can use mlflow tracking on Tensorflow, torch, scikit ...
+
         TODO: Merge this function with easy_score, and pass the paramater used on run as parameter for easy_score
-        This fix will be available 
+        This fix will be available
         """
-        if self.score_function == None:
+        if self.score_function is None:
             assert False, "No score function setted, you can set it using set_score(func) or passing score= func during class instantiation"
         for i, elem in enumerate(self.population):
             with mlflow.start_run():
@@ -291,7 +288,6 @@ class FlowTunning(Tunning):
                              reverse=True)
         self.first_parent = sorted_list[0]
         self.second_parent = sorted_list[1]
-        generation_top_score = self.first_parent['score']
         self.genetic_tree.append(self.first_parent)
         print(f"Better parent {self.first_parent}")
         print("DONE")
