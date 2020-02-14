@@ -31,8 +31,7 @@ def check_season_available(season):
 
 
 def check_date_available(df, date):
-    if 'date_dt' not in df.columns:
-        df['date_dt'] = pd.to_datetime(df.date, format='%Y%m%d')
+    df['date_dt'] = pd.to_datetime(df.date, format='%Y%m%d')
     max_date_av = df.date_dt.max()
     print(max_date_av, date)
     if date - max_date_av == datetime.timedelta(days=1):
@@ -83,9 +82,10 @@ def append_df(initial_df, players_df, write=True):
 @memory2.cache
 def load_dataset(season):
     data = pd.read_csv(os.path.join(DATA_DIR, f'season_{season}.csv'))
-    if 'date_dt' not in data.columns:
-        data.date_dt = pd.to_datetime(data.date, format='%Y%m%d')
-    data = data[data.date_dt <= date]
+    data.date = data.date.astype(int).astype(str)
+    data.date_dt = pd.to_datetime(data.date, format='%Y%m%d')
+    temp_date = datetime.datetime.strftime(date, format="%Y%m%d")
+    data = data[data.date <= temp_date]
     return data
 
 
@@ -137,6 +137,8 @@ def get_df_prediction(date, season, season_year):
             start, end = get_diff(df, players)
             scraped = scrape_df(start, end)
             df_f = append_df(df, scraped)
+            df_f.to_csv(os.path.join(DATA_DIR, f'season_{season}.csv'),
+                        index=False)
             appended = append_df(df_f, players)
             df_to_predict = feature_engineer(appended)
 
@@ -144,6 +146,8 @@ def get_df_prediction(date, season, season_year):
         end = get_end_date(today_dt, date)
         print(end)
         scraped = scrape_df(season_start, end)
+        scraped.to_csv(os.path.join(DATA_DIR, f'season_{season}.csv'),
+                    index=False)
         players = players_available(date, season_year)
         appended = append_df(scraped, players)
         df_to_predict = feature_engineer(appended)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from typing import List, Dict, Union, Optional, Any, Sequence, Tuple
+from typing import List, Dict, Union, Optional, Any, Sequence, Tuple, Callable
 
 import pandas as pd
 import os
@@ -402,7 +402,10 @@ class Season(object):
 
 
 class Team(object):
-    def __init__(self, team: str, season_data: pd.DataFrame, cached: bool = False) -> None:
+    def __init__(self,
+                 team: str,
+                 season_data: pd.DataFrame,
+                 cached: bool = False) -> None:
         self.team: str = team
         self.data: pd.DataFrame = self.get_team_data(season_data)
         self.cached = cached
@@ -433,29 +436,36 @@ class Team(object):
 
 
 class Player(object):
-    def __init__(self, name, season_data, cached: bool = True):
-        self.name = name
-        self.data = self.get_player_data(season_data)
-        self.cached = cached
+    def __init__(self,
+                 name: str,
+                 season_data: pd.DataFrame,
+                 cached: bool = False) -> None:
+        self.name: str = name
+        self.data: pd.DataFrame = self.get_player_data(season_data)
+        self.cached: bool = cached
 
-    def current_team(self, to_date):
+    def current_team(self, to_date: datetime.datetime) -> Callable:
         if self.cached:
             pct = memory3.cache(player_current_team_cache)
         else:
             pct = player_current_team_cache
         return pct(self.data, to_date)
 
-    def get_player_data(self, season_data):
-        player_data = season_data[season_data.name == self.name].reset_index(
-            drop=True)
+    def get_player_data(self, season_data: pd.DataFrame) -> pd.DataFrame:
+        player_data: pd.DataFrame = season_data[
+            season_data.name == self.name].reset_index(drop=True)
         player_data = player_data.sort_values(["date_dt"])
         player_data["last_game"] = (
             player_data["date_dt"] -
             player_data["date_dt"].shift()).dt.days.fillna(7)
         return player_data
 
-    def weekly_data(self, to_date, metrics, add_cols=[]):
-        to_date_dt = datetime.datetime.strptime(to_date, "%Y%m%d")
+    def weekly_data(self,
+                    to_date: str,
+                    metrics: List[str],
+                    add_cols: List[str] = []) -> Callable:
+        to_date_dt: datetime.datetime = datetime.datetime.strptime(
+            to_date, "%Y%m%d")
         current_team = self.current_team(to_date_dt)
         if self.cached:
             pwd = memory4.cache(player_weekly_data_cache)
@@ -464,8 +474,12 @@ class Player(object):
         return pwd(self.data, self.name, current_team, to_date, metrics,
                    add_cols)
 
-    def season_stat_to_date(self, to_date, metrics, add_cols=[]):
-        to_date_dt = datetime.datetime.strptime(to_date, "%Y%m%d")
+    def season_stat_to_date(self,
+                            to_date: str,
+                            metrics: List[str],
+                            add_cols: List[str] = []) -> Callable:
+        to_date_dt: datetime.datetime = datetime.datetime.strptime(
+            to_date, "%Y%m%d")
         current_team = self.current_team(to_date_dt)
         if self.cached:
             sstd = memory5.cache(player_season_stat_to_date_cache)
