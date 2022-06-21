@@ -4,7 +4,7 @@ lightgbm==2.3.1
 xgboost==0.90
 streamlit==0.51.0
 keyring==19.2.0
-numpy==1.17.2
+numpy==1.22.0
 importlib_metadata==0.23
 simplejson==3.17.0
 bayesian_optimization==1.0.1
